@@ -1,69 +1,80 @@
-# React + TypeScript + Vite
+# Candidate Profiler (PDF Upload Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript + Vite app to upload a resume PDF and display parsed fields returned by the backend.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Drag-and-drop or click-to-upload PDF.
+- Uploads to `POST /pdf/upload` on the backend.
+- Displays filename, size, mime type, and extracted fields including top skills.
+- Dev proxy to avoid CORS in development.
 
-## Expanding the ESLint configuration
+## Requirements
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 18+
+- Backend running locally on `http://localhost:3000` with endpoint `POST /pdf/upload` accepting multipart form-data field `file`.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the app at http://localhost:5173, then drag a PDF into the drop area or click to choose a file. Click "Upload PDF" to send it to the backend.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Backend API
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
+- URL: `http://localhost:3000/pdf/upload`
+- Method: `POST`
+- Body: `multipart/form-data` with field name `file`
+- Expected response shape:
+
+```json
+{
+  "success": true,
+  "data": {
+    "fileName": "example.pdf",
+    "fileSize": 12345,
+    "mimeType": "application/pdf",
+    "fields": {
+      "full_name": "...",
+      "college": "...",
+      "most_recent_company": "...",
+      "top_skills": ["..."]
+    }
+  }
+}
+```
+
+If your backend uses a different field name than `file`, update the code in `src/App.tsx` where `FormData` is constructed.
+
+## Dev Proxy
+
+Vite is configured to proxy requests to `/pdf/*` to the backend:
+
+```ts
+// vite.config.ts
+server: {
+  proxy: {
+    '/pdf': {
+      target: 'http://localhost:3000',
+      changeOrigin: true,
     },
   },
-])
+},
 ```
+
+This means the frontend calls `/pdf/upload`, which is proxied to `http://localhost:3000/pdf/upload` in development.
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Repository
+
+Remote repo: https://github.com/TEJASVISJAIN/pdfparseFrontend.git
+
